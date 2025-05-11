@@ -2,17 +2,44 @@
 // This code explores the networked, decentralized intelligence of fungi through
 // recursive growth patterns, emergent behaviors, and chaotic systems
 
-import * as Tone from "https://esm.sh/tone";
-window.Tone = Tone;
-
 let mycelium = [];
 let playing = false;
 let rotationOffset = 0;
 
 // Audio variables
-let audioCtx;
-let oscillator;
-let gainNode;
+let backgroundSound;
+let growthSound;
+let interactionSound;
+let soundsLoaded = false;
+
+// Preload function to load sounds
+window.preload = function () {
+  // Load sound files
+
+  try {
+    // Load audio files from URLs (can be paths to local files in your project)
+    backgroundSound = loadSound(
+      "https://freesound.org/data/previews/167/167073_3118803-lq.mp3"
+    );
+    growthSound = loadSound(
+      "https://freesound.org/data/previews/445/445978_6142149-lq.mp3"
+    );
+    interactionSound = loadSound(
+      "https://freesound.org/data/previews/151/151232_2730796-lq.mp3"
+    );
+
+    // Set properties
+    backgroundSound.setVolume(0.2);
+    growthSound.setVolume(0.3);
+    interactionSound.setVolume(0.5);
+
+    soundsLoaded = true;
+    console.log("Sounds loaded successfully");
+  } catch (e) {
+    console.error("Error loading sounds:", e);
+    soundsLoaded = false;
+  }
+};
 
 window.setup = function () {
   createCanvas(windowWidth, windowHeight, WEBGL);
@@ -21,8 +48,6 @@ window.setup = function () {
   noStroke();
 
   mycelium.push(new MyceliumNode(0, 0, 0, 80, 0));
-
-  // Don't initialize audio yet - wait for click
 };
 
 window.draw = function () {
@@ -43,65 +68,26 @@ window.draw = function () {
   }
 };
 
-// Using Web Audio API directly instead of Tone.js
-function setupAudio() {
-  try {
-    // Create audio context
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    // Create gain node for volume control
-    gainNode = audioCtx.createGain();
-    gainNode.gain.value = 0.1; // Set volume
-    gainNode.connect(audioCtx.destination);
-
-    console.log("Audio initialization successful");
-    return true;
-  } catch (error) {
-    console.error("Audio initialization error:", error);
-    return false;
-  }
-}
-
-// Play a simple tone with given frequency and duration
-function playTone(frequency, duration) {
-  if (!audioCtx) return;
-
-  try {
-    // Create oscillator
-    oscillator = audioCtx.createOscillator();
-    oscillator.type = "sine";
-    oscillator.frequency.value = frequency; // Set frequency
-
-    // Connect and play
-    oscillator.connect(gainNode);
-    oscillator.start();
-
-    // Stop after specified duration
-    setTimeout(() => {
-      oscillator.stop();
-      oscillator.disconnect();
-    }, duration);
-  } catch (error) {
-    console.error("Sound playback error:", error);
-  }
-}
-
 window.mousePressed = function () {
-  // Set up audio on first click
-  if (!audioCtx) {
-    setupAudio();
-  }
-
-  // Resume audio context if suspended
-  if (audioCtx && audioCtx.state === "suspended") {
-    audioCtx.resume();
-  }
-
+  // Toggle sound
   playing = !playing;
 
-  if (playing && audioCtx) {
-    // Play a simple tone to indicate start
-    playTone(220, 500); // A3 note, 500ms
+  if (soundsLoaded) {
+    if (playing) {
+      // Start background sound with loop
+      if (!backgroundSound.isPlaying()) {
+        backgroundSound.loop();
+      }
+      // Play interaction sound
+      interactionSound.play();
+    } else {
+      // Stop background sound
+      if (backgroundSound.isPlaying()) {
+        backgroundSound.stop();
+      }
+    }
+  } else {
+    console.log("Sounds not loaded yet or failed to load");
   }
 };
 
@@ -152,11 +138,36 @@ class MyceliumNode {
       mycelium.push(child);
     }
 
-    // Play sound when spawning (only if audio is set up)
-    if (playing && audioCtx) {
-      // Play a short sound with random frequency
-      let notes = [261.63, 329.63, 392.0]; // C4, E4, G4 frequencies
-      playTone(notes[floor(random(notes.length))], 100); // Play for 100ms
+    // Play growth sound when spawning (randomly, not every time)
+    if (playing && soundsLoaded && random() < 0.3) {
+      // Play growth sound with random rate for variety
+      growthSound.rate(random(0.8, 1.2));
+      growthSound.play();
     }
+  }
+}
+
+// to incorporate recursive fractal structures
+function createFractalStructure(x, y, z, size, depth) {
+  // Base case for recursion
+  if (depth <= 0 || size < 5) return;
+
+  // Create a node at this position
+  let node = new MyceliumNode(x, y, z, size, 5 - depth);
+  mycelium.push(node);
+
+  // Create branches in different directions
+  let branchCount = 3; // Number of branches
+  for (let i = 0; i < branchCount; i++) {
+    // Calculate angle for this branch
+    let angle = (TWO_PI / branchCount) * i;
+
+    // Calculate new position
+    let newX = x + cos(angle) * size;
+    let newY = y + sin(angle) * size;
+    let newZ = z + sin(angle * 0.5) * size * 0.5;
+
+    // Recursive call to create sub-branch
+    createFractalStructure(newX, newY, newZ, size * 0.7, depth - 1);
   }
 }
