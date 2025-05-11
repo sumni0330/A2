@@ -62,7 +62,7 @@ class MyceliumNode {
   shouldSpawn() {
     return this.r > 1 && this.life > 30 && random() < 0.005;
   }
-
+  x;
   spawn() {
     let branches = int(random(1, 3));
     for (let i = 0; i < branches; i++) {
