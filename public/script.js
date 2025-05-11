@@ -1,20 +1,25 @@
 let mycelium = [];
-let synth;
-let noise;
-let playing = false;
+let osc,
+  noise,
+  playing = false;
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
   background(0);
   console.log("✅ setup 시작됨");
 
+  // 균사체 초기화
   mycelium.push(new MyceliumNode(width / 2, height / 2, 10, 0));
 
-  synth = new Tone.MembraneSynth().toDestination();
-  noise = new Tone.Noise("pink").start();
-  let autoFilter = new Tone.AutoFilter("4n").toDestination().start();
-  noise.connect(autoFilter);
-  noise.volume.value = -40;
+  // p5.sound로 대체한 사운드 설정
+  osc = new p5.Oscillator("sine");
+  osc.freq(120);
+  osc.amp(0);
+  osc.start();
+
+  noise = new p5.Noise("pink");
+  noise.amp(0);
+  noise.start();
 }
 
 function draw() {
@@ -37,11 +42,18 @@ function draw() {
 }
 
 function mousePressed() {
-  Tone.start();
   playing = !playing;
-  noise.volume.value = playing ? -10 : -60;
-  synth.triggerAttackRelease("C2", "8n");
-  console.log("🎵 mousePressed: sound " + (playing ? "on" : "off"));
+
+  if (playing) {
+    osc.amp(0.3, 0.05);
+    noise.amp(0.2, 0.1);
+    osc.freq(random([130, 200, 260]));
+  } else {
+    osc.amp(0, 0.3);
+    noise.amp(0, 0.3);
+  }
+
+  console.log("🎵 sound " + (playing ? "on" : "off"));
 }
 
 class MyceliumNode {
@@ -85,7 +97,8 @@ class MyceliumNode {
     }
 
     if (random() < 0.5) {
-      synth.triggerAttackRelease(random(["C3", "E3", "G3"]), "16n");
+      osc.freq(random([200, 300, 400]));
     }
   }
 }
+햣;
