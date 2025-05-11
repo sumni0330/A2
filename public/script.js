@@ -6,11 +6,10 @@ let playing = false;
 function setup() {
   createCanvas(windowWidth, windowHeight);
   background(0);
+  console.log("✅ setup 시작됨");
 
-  // 초기 균사 생성
-  mycelium.push(new MyceliumNode(width / 2, height / 2, 5, 0));
+  mycelium.push(new MyceliumNode(width / 2, height / 2, 10, 0));
 
-  // 사운드 설정
   synth = new Tone.MembraneSynth().toDestination();
   noise = new Tone.Noise("pink").start();
   let autoFilter = new Tone.AutoFilter("4n").toDestination().start();
@@ -21,6 +20,8 @@ function setup() {
 function draw() {
   noFill();
   strokeWeight(1);
+  stroke(255, 100);
+
   for (let i = mycelium.length - 1; i >= 0; i--) {
     mycelium[i].update();
     mycelium[i].display();
@@ -28,13 +29,19 @@ function draw() {
       mycelium[i].spawn();
     }
   }
+
+  fill(255);
+  noStroke();
+  textSize(16);
+  text("Nodes: " + mycelium.length, 10, 20);
 }
 
 function mousePressed() {
-  Tone.start(); // Required to init audio on user gesture
+  Tone.start();
   playing = !playing;
   noise.volume.value = playing ? -10 : -60;
   synth.triggerAttackRelease("C2", "8n");
+  console.log("🎵 mousePressed: sound " + (playing ? "on" : "off"));
 }
 
 class MyceliumNode {
@@ -54,15 +61,15 @@ class MyceliumNode {
   }
 
   display() {
-    let col = color(150 + this.depth * 10, 100, 200, 40);
+    let col = color(200 + this.depth * 10, 100, 255, 70);
     stroke(col);
     ellipse(this.x, this.y, this.r);
   }
 
   shouldSpawn() {
-    return this.r > 1 && this.life > 30 && random() < 0.005;
+    return this.r > 1 && this.life > 30 && random() < 0.01;
   }
-  x;
+
   spawn() {
     let branches = int(random(1, 3));
     for (let i = 0; i < branches; i++) {
@@ -77,9 +84,8 @@ class MyceliumNode {
       mycelium.push(child);
     }
 
-    // 소리 재생
-    if (random() < 0.3) {
-      synth.triggerAttackRelease(random(["C3", "E3", "G#3", "A2"]), "16n");
+    if (random() < 0.5) {
+      synth.triggerAttackRelease(random(["C3", "E3", "G3"]), "16n");
     }
   }
 }
