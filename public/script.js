@@ -35,8 +35,9 @@ function mousePressed() {
     Tone.start().then(() => {
       console.log("🔊 Tone.js started");
 
+      // 사운드 초기화
       synth = new Tone.MembraneSynth().toDestination();
-      noise = new Tone.Noise("brown").start();
+      noise = new Tone.Noise("brown").toDestination();
       noise.volume.value = -40;
 
       playSound();
