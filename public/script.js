@@ -2,9 +2,6 @@
 // This code explores the networked, decentralized intelligence of fungi through
 // recursive growth patterns, emergent behaviors, and chaotic systems
 
-// Mycelium Chaos - A response to "What Is It Like to Be A Fungus?" by Merlin Sheldrake
-// This version completely removes Tone.js and only uses p5.sound
-
 // Global variables
 let mycelium = [];
 let playing = false;
@@ -12,43 +9,69 @@ let rotationOffset = 0;
 let glitchEffect = false;
 let moirePatternActive = false;
 
-// Audio elements using p5.sound
-let backgroundSound;
-let spawnSound;
-let interactionSound;
-let soundsLoaded = false;
+// Sound variables using only p5.sound built-in generators
+let osc1, osc2, noise1;
+let env1, env2, noiseEnv;
+let soundsReady = false;
 
-// Setup function - initialize the canvas and environment
+// p5 preload function
+function preload() {
+  // No preloading needed anymore
+}
+
+// Setup function
 function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   angleMode(RADIANS);
   noiseDetail(4, 0.5);
   noStroke();
 
-  // Initialize sounds using p5.sound
-  try {
-    // Create sounds
-    backgroundSound = new p5.Oscillator("sine");
-    backgroundSound.amp(0.1);
-    backgroundSound.freq(60);
-
-    spawnSound = new p5.Oscillator("triangle");
-    spawnSound.amp(0.05);
-
-    interactionSound = new p5.Noise("pink");
-    interactionSound.amp(0.1);
-
-    soundsLoaded = true;
-    console.log("P5 sound objects created successfully");
-  } catch (error) {
-    console.error("Error creating sound objects:", error);
-  }
+  // Set up sound objects
+  setupSounds();
 
   // Create initial mycelium node
   mycelium.push(new MyceliumNode(0, 0, 0, 80, 0));
 
-  // Start with fractal structure
+  // Create initial fractal structure
   createFractalStructure(0, 0, 0, 100, 3);
+}
+
+// Setup sound objects
+function setupSounds() {
+  try {
+    // Create oscillators for tonal sounds
+    osc1 = new p5.Oscillator("sine");
+    osc1.amp(0);
+    osc1.freq(60);
+    osc1.start();
+
+    osc2 = new p5.Oscillator("triangle");
+    osc2.amp(0);
+    osc2.start();
+
+    // Create noise for textural sounds
+    noise1 = new p5.Noise("pink");
+    noise1.amp(0);
+    noise1.start();
+
+    // Create envelopes for sound shaping
+    env1 = new p5.Envelope();
+    env1.setADSR(0.01, 0.1, 0.2, 0.5);
+    env1.setRange(0.05, 0);
+
+    env2 = new p5.Envelope();
+    env2.setADSR(0.01, 0.05, 0, 0.1);
+    env2.setRange(0.05, 0);
+
+    noiseEnv = new p5.Envelope();
+    noiseEnv.setADSR(0.1, 0.2, 0.1, 0.5);
+    noiseEnv.setRange(0.05, 0);
+
+    soundsReady = true;
+    console.log("Sound setup successful");
+  } catch (error) {
+    console.error("Error setting up sounds:", error);
+  }
 }
 
 // Draw function - runs continuously
@@ -60,12 +83,12 @@ function draw() {
     drawMoirePattern();
   }
 
-  // Apply rotation to the entire scene
+  // Camera rotation
   rotateY(rotationOffset);
   rotateX(rotationOffset * 0.5);
   rotationOffset += 0.003;
 
-  // Setup lighting
+  // Set up lighting
   ambientLight(60);
   pointLight(255, 255, 255, 200, -200, 300);
 
@@ -80,9 +103,45 @@ function draw() {
     }
   }
 
+  // Update background sound frequency based on mycelium size
+  if (playing && soundsReady && frameCount % 30 === 0) {
+    let freq = map(mycelium.length, 10, 500, 50, 100);
+    osc1.freq(freq);
+  }
+
+  // Random sound events
+  if (playing && soundsReady && random() < 0.003) {
+    playRandomSound();
+  }
+
   // Apply random glitch effects
   if (glitchEffect && random() < 0.05) {
     applyGlitchEffect();
+  }
+}
+
+// Play a node spawn sound
+function playSpawnSound(frequency) {
+  if (!soundsReady || !playing) return;
+
+  try {
+    osc2.freq(frequency);
+    env2.play(osc2);
+  } catch (error) {
+    console.error("Error playing spawn sound:", error);
+  }
+}
+
+// Play random ambient sound
+function playRandomSound() {
+  if (!soundsReady || !playing) return;
+
+  try {
+    let freq = random([200, 300, 400, 500, 600]);
+    osc2.freq(freq);
+    env2.play(osc2);
+  } catch (error) {
+    console.error("Error playing random sound:", error);
   }
 }
 
@@ -91,21 +150,20 @@ function mousePressed() {
   // Toggle playing state
   playing = !playing;
 
-  if (soundsLoaded) {
+  if (soundsReady) {
     if (playing) {
-      // Start sound
-      backgroundSound.start();
-      interactionSound.start();
+      // Start background sounds
+      noise1.amp(0.03, 0.5);
+      env1.play(osc1);
 
-      // Also play a tone to indicate start
-      playSpawnSound(300);
+      // Play an initialization sound
+      osc2.freq(300);
+      env2.play(osc2);
     } else {
-      // Stop sound
-      backgroundSound.stop();
-      interactionSound.stop();
+      // Fade out sounds
+      noise1.amp(0, 0.5);
+      osc1.amp(0, 0.5);
     }
-  } else {
-    console.log("Sound objects not loaded correctly");
   }
 
   return false; // Prevent default
@@ -117,12 +175,23 @@ function keyPressed() {
   if (key === "g" || key === "G") {
     glitchEffect = !glitchEffect;
     console.log("Glitch effect:", glitchEffect ? "ON" : "OFF");
+
+    // Play glitch sound
+    if (soundsReady && playing) {
+      noiseEnv.play(noise1);
+    }
   }
 
   // Toggle moiré pattern with M key
   if (key === "m" || key === "M") {
     moirePatternActive = !moirePatternActive;
     console.log("Moiré pattern:", moirePatternActive ? "ON" : "OFF");
+
+    // Play mode change sound
+    if (soundsReady && playing) {
+      osc2.freq(440);
+      env2.play(osc2);
+    }
   }
 
   return false; // Prevent default
@@ -131,23 +200,6 @@ function keyPressed() {
 // Handle window resize
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
-}
-
-// Play spawn sound with specified frequency
-function playSpawnSound(frequency) {
-  if (!soundsLoaded || !playing) return;
-
-  try {
-    spawnSound.freq(frequency);
-    spawnSound.start();
-
-    // Stop after a short duration
-    setTimeout(() => {
-      spawnSound.stop();
-    }, 100);
-  } catch (error) {
-    console.error("Error playing spawn sound:", error);
-  }
 }
 
 // Draw moiré pattern effect
@@ -205,10 +257,10 @@ function applyGlitchEffect() {
     line(x1, y1, 0, x2, y2, 0);
   }
 
-  // Audio glitch if sound is on
-  if (playing && soundsLoaded && random() < 0.3) {
+  // Audio glitch effect
+  if (playing && soundsReady && random() < 0.3) {
     try {
-      playSpawnSound(random(500, 1000));
+      noiseEnv.play(noise1);
     } catch (error) {
       console.error("Error playing glitch sound:", error);
     }
@@ -237,7 +289,7 @@ function createFractalStructure(x, y, z, size, depth) {
     let newY = y + sin(angle) * size;
     let newZ = z + sin(angle * 0.5) * size * 0.5;
 
-    // Recursive call to create sub-branch
+    // Recursive call to create sub-branch (this demonstrates recursion)
     createFractalStructure(newX, newY, newZ, size * 0.7, depth - 1);
   }
 }
@@ -327,7 +379,7 @@ class MyceliumNode {
     }
 
     // Play sound for spawning if audio is active
-    if (playing && soundsLoaded && random() < 0.3) {
+    if (playing && soundsReady && random() < 0.3) {
       // Play different frequencies based on depth
       let freq = map(this.depth, 0, 10, 300, 800);
       playSpawnSound(freq);
