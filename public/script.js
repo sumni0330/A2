@@ -40,7 +40,7 @@ window.draw = function () {
 };
 
 window.mousePressed = function () {
-  Tone.start();
+  Tone.start(); // 이 위치는 괜찮음!
   playing = !playing;
 
   if (playing) {
