@@ -1,6 +1,4 @@
 import * as Tone from "https://esm.sh/tone";
-
-// Tone을 전역에서 쓸 수 있게 설정
 window.Tone = Tone;
 
 let mycelium = [];
@@ -12,32 +10,28 @@ window.setup = function () {
   createCanvas(windowWidth, windowHeight, WEBGL);
   angleMode(RADIANS);
   noStroke();
-  noiseDetail(4, 0.5); // Perlin noise
+  noiseDetail(4, 0.5);
 
   mycelium.push(new MyceliumNode(0, 0, 0, 80, 0));
 
-  // 사운드는 이 시점에서는 start하지 않음
+  // 사운드 객체 초기화
   synth = new Tone.MembraneSynth().toDestination();
-  noise = new Tone.Noise("brown");
+  noise = new Tone.Noise("brown").toDestination(); // ← 오류 수정: 함수 아님
   noise.volume.value = -40;
 };
 
 window.draw = function () {
   background(0);
-
-  // 카오스 회전
   rotateY(rotationOffset);
   rotateX(rotationOffset * 0.5);
   rotationOffset += 0.003;
 
-  // 빛 효과
-  ambientLight(40);
-  pointLight(255, 255, 255, 0, 0, 400);
+  ambientLight(60);
+  pointLight(255, 255, 255, 200, -200, 300);
 
   for (let i = mycelium.length - 1; i >= 0; i--) {
     mycelium[i].update();
     mycelium[i].display();
-
     if (mycelium[i].shouldSpawn()) {
       mycelium[i].spawn();
     }
@@ -45,7 +39,7 @@ window.draw = function () {
 };
 
 window.mousePressed = function () {
-  Tone.start(); // 반드시 클릭 후!
+  Tone.start(); // 오디오 context resume
   playing = !playing;
 
   if (playing) {
@@ -56,17 +50,17 @@ window.mousePressed = function () {
   }
 };
 
-// 곰팡이 노드 클래스
+// 🧠 곰팡이 구조 클래스
 class MyceliumNode {
   constructor(x, y, z, r, depth) {
     this.pos = createVector(x, y, z);
     this.r = r;
     this.depth = depth;
-    this.angle = p5.Vector.random3D(); // 3D 방향
+    this.angle = p5.Vector.random3D();
     this.life = 0;
     this.col = color(
-      100 + window.noise(this.pos.x * 0.01, this.pos.y * 0.01) * 155,
-      100 + sin(this.depth) * 155,
+      100 + noise(x * 0.01, y * 0.01) * 155, // ← 오류 수정: noise는 p5에서 전역 제공됨
+      100 + sin(depth) * 155,
       255,
       200
     );
@@ -81,12 +75,12 @@ class MyceliumNode {
     push();
     translate(this.pos.x, this.pos.y, this.pos.z);
     ambientMaterial(this.col);
-    sphere(this.r * 0.1 + window.noise(this.life * 0.01) * 5, 6, 4); // 혼란한 느낌
+    sphere(this.r * 0.1 + noise(this.life * 0.01) * 5, 6, 4);
     pop();
   }
 
   shouldSpawn() {
-    return this.r > 10 && this.life > 30 && random() < 0.015;
+    return this.r > 10 && this.life > 30 && random() < 0.01;
   }
 
   spawn() {
@@ -103,7 +97,6 @@ class MyceliumNode {
       mycelium.push(child);
     }
 
-    // 간헐적 사운드
     if (random() < 0.3) {
       synth.triggerAttackRelease(random(["C3", "E3", "G3"]), "16n");
     }
