@@ -1,22 +1,18 @@
-import * as Tone from "https://esm.sh/tone";
-window.Tone = Tone;
-
 let mycelium = [];
 let synth, noise;
 let playing = false;
-let initialized = false;
 let rotationOffset = 0;
+let initialized = false;
 
-window.setup = function () {
+function setup() {
   createCanvas(windowWidth, windowHeight, WEBGL);
   angleMode(RADIANS);
   noiseDetail(4, 0.5);
   noStroke();
-
   mycelium.push(new MyceliumNode(0, 0, 0, 80, 0));
-};
+}
 
-window.draw = function () {
+function draw() {
   background(0);
   rotateY(rotationOffset);
   rotateX(rotationOffset * 0.5);
@@ -32,18 +28,26 @@ window.draw = function () {
       mycelium[i].spawn();
     }
   }
-};
+}
 
-window.mousePressed = function () {
+function mousePressed() {
   if (!initialized) {
-    Tone.start();
-    synth = new Tone.MembraneSynth().toDestination();
-    noise = new Tone.Noise("brown").start();
-    noise.volume.value = -40;
-    initialized = true;
-    console.log("🔊 Tone.js initialized");
-  }
+    Tone.start().then(() => {
+      console.log("🔊 Tone.js started");
 
+      synth = new Tone.MembraneSynth().toDestination();
+      noise = new Tone.Noise("brown").start();
+      noise.volume.value = -40;
+
+      playSound();
+      initialized = true;
+    });
+  } else {
+    playSound();
+  }
+}
+
+function playSound() {
   playing = !playing;
   if (playing) {
     noise.start();
@@ -51,7 +55,7 @@ window.mousePressed = function () {
   } else {
     noise.stop();
   }
-};
+}
 
 class MyceliumNode {
   constructor(x, y, z, r, depth) {
@@ -99,7 +103,7 @@ class MyceliumNode {
       mycelium.push(child);
     }
 
-    if (random() < 0.3) {
+    if (random() < 0.3 && synth) {
       synth.triggerAttackRelease(random(["C3", "E3", "G3"]), "16n");
     }
   }
