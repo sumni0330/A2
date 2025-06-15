@@ -2,24 +2,192 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Mycelium Chaos</title>
-
-    <!-- p5.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/p5.min.js"></script>
-
-    <!-- p5.sound -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.6.0/addons/p5.sound.js"></script>
-
+    <title>K-Skincare Collective Face Map</title>
     <style>
       body {
-        margin: 0;
-        background: black;
+        background: #f8f4ef;
+        font-family: sans-serif;
+      }
+      h1 {
+        text-align: center;
+        font-size: 2.7rem;
+        margin-top: 28px;
+      }
+      #container {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 30px;
+      }
+      #face-area {
+        position: relative;
+        width: 540px;
+        height: 540px;
+        background: #fffbe7;
+        border-radius: 32px;
+        box-shadow: 0 8px 32px #e7d9f5;
         overflow: hidden;
+        margin-top: 35px;
+      }
+      #face-area img {
+        width: 540px;
+        height: 540px;
+        display: block;
+      }
+      .sticker {
+        position: absolute;
+        padding: 10px 24px;
+        background: #efd4f8e8;
+        border-radius: 25px;
+        border: 1.5px solid #b282c5;
+        font-size: 1.18rem;
+        color: #6a3392;
+        pointer-events: none;
+        box-shadow: 1px 2px 14px #e7d8f0cc;
+        white-space: nowrap;
+        z-index: 10;
+        animation: pop 0.32s;
+        font-family: inherit;
+        min-width: 100px;
+      }
+      .env-tag {
+        font-size: 0.93rem;
+        margin-left: 7px;
+        color: #7455aa;
+      }
+      .influencer {
+        display: block;
+        font-size: 0.92rem;
+        margin-top: 3px;
+        color: #807aab;
+      }
+      .group-buy {
+        display: inline-block;
+        margin-left: 8px;
+        background: #f0c745dd;
+        border-radius: 12px;
+        font-size: 0.93rem;
+        color: #795900;
+        padding: 2px 10px;
+      }
+      .translate-btn {
+        margin-left: 8px;
+        background: #dbeafe;
+        color: #405ca4;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+      @keyframes pop {
+        from {
+          transform: scale(0.4);
+          opacity: 0.2;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      #form {
+        margin: 20px auto 0;
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        font-size: 1.06rem;
+      }
+      #form select,
+      #form input {
+        padding: 8px 13px;
+        border-radius: 9px;
+        border: 1.2px solid #cabbe5;
+        font-size: 1.07rem;
+      }
+      #form button {
+        border-radius: 10px;
+        background: #7a40a0;
+        color: #fff;
+        border: none;
+        padding: 9px 22px;
+        font-size: 1.1rem;
+      }
+      #tips {
+        width: 240px;
+        margin-top: 40px;
+      }
+      .tip-card {
+        background: #fff9ef;
+        border-radius: 13px;
+        box-shadow: 0 2px 9px #efedff55;
+        padding: 18px 16px 14px 16px;
+        margin-bottom: 22px;
+        font-size: 1.08rem;
+        color: #594d38;
+      }
+      .tip-card strong {
+        color: #854bb8;
       }
     </style>
   </head>
   <body>
-    <!-- No module type here, just regular script -->
+    <h1>K-Skincare Collective Face Map</h1>
+    <div id="container">
+      <div>
+        <div id="face-area">
+          <img src="face.png" alt="face diagram" />
+        </div>
+        <form id="form" autocomplete="off">
+          <select id="region">
+            <option value="forehead">Forehead</option>
+            <option value="cheekL">Left Cheek</option>
+            <option value="cheekR">Right Cheek</option>
+            <option value="nose">Nose</option>
+            <option value="chin">Chin</option>
+            <option value="jaw">Jaw</option>
+          </select>
+          <select id="env">
+            <option value="Dry">Dry</option>
+            <option value="Humid">Humid</option>
+            <option value="Hot">Hot</option>
+            <option value="Hard Water">Hard Water</option>
+            <option value="Other">Other</option>
+          </select>
+          <select id="lang">
+            <option value="en">English</option>
+            <option value="ko">한국어</option>
+          </select>
+          <input
+            id="concernInput"
+            type="text"
+            placeholder="Your skincare concern"
+            maxlength="40"
+            required
+          />
+          <button type="submit">Add</button>
+        </form>
+      </div>
+      <!-- 우측 팁/FAQ -->
+      <div id="tips">
+        <div class="tip-card">
+          <strong>Community Tip:</strong><br />
+          Always patch test new products—your skin is unique!
+        </div>
+        <div class="tip-card">
+          <strong>FAQ:</strong><br />
+          “How can I spot fake K-beauty products?”<br /><span
+            style="color: #666"
+            >→ Stick to group buys, check influencer reviews, and use trusted
+            sellers.</span
+          >
+        </div>
+        <div class="tip-card">
+          <strong>Did you know?</strong><br />
+          Australia’s dry/hot climate may make Korean routines react
+          differently. Don’t skip moisturizer and SPF!
+        </div>
+      </div>
+    </div>
     <script src="script.js"></script>
   </body>
 </html>
